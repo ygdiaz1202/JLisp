@@ -1,0 +1,215 @@
+group generator;
+
+jasminFile(maxStackDepth, maxLocals, instructions) ::= <<
+; public class output.JLisp extends Object { ...}
+.class public output.JLisp
+.super java/lang/Object
+
+; public output.JLisp() { super(); } // calls java.lang.Object()
+.method public \<init>()V
+   .limit stack 1
+   .limit locals 1
+   aload_0
+   invokespecial java/lang/Object/\<init>()V
+   return
+.end method
+
+; main()
+.method public static main([Ljava/lang/String;)V
+   .limit stack <maxStackDepth> ; how much stack space do we need?
+   .limit locals <maxLocals> ; how many locals do we need?
+   ; code translated from input stream
+   <instructions; separator="\n">
+   return
+.end method
+>>
+
+iadd(first,values,end)::=<<
+ <first>
+ <values; separator="\niadd\n">
+ <end>
+>>
+
+fadd(first,values,end)::=<<
+<first>
+<values; separator="\nfadd\n">
+<end>
+>>
+
+isub(first,values,end)::=<<
+<first>
+<values; separator="\nisub\n">
+<end>
+>>
+
+fsub(first,values,end)::=<<
+<first>
+<values; separator="\nfsub\n">
+<end>
+>>
+
+imul(first,values,end)::=<<
+<first>
+<values; separator="\nimul\n">
+<end>
+>>
+
+fmul(first,values,end)::=<<
+<first>
+<values; separator="\nfmul\n">
+<end>
+>>
+
+idiv(first,values,end)::=<<
+<first>
+<values; separator="\nidiv\n">
+<end>
+>>
+
+fdiv(first,values,end)::=<<
+<first>
+<values; separator="\nfdiv\n">
+<end>
+>>
+
+lt(a,b,label1,label2) ::= <<
+<a>
+<b;separator="\n">
+if_icmplt Label<label1>
+ldc 0
+goto Label<label2>
+Label<label1>:
+ldc 1
+Label<label2>:
+>>
+
+cond(condition,trueCond,falseCond,label1,label2)::=<<
+<condition>
+iconst_0
+if_icmpeq Label<label2>
+<trueCond>
+goto Label<label1>
+Label<label2>:
+<falseCond>
+Label<label1>:
+>>
+
+gt(a,b,label1,label2) ::= <<
+<a>
+<b;separator="\n">
+if_icmpgt Label<label1>
+ldc 0
+goto Label<label2>
+Label<label1>:
+ldc 1
+Label<label2>:
+>>
+
+print(instructions,type)::=<<
+ <instructions>
+ getstatic java/lang/System.out Ljava/io/PrintStream;
+ swap  
+ invokevirtual java/io/PrintStream.println(<type>)V
+>>
+
+printB(instructions,label1,label2)::=<<
+ <instructions>
+ ldc 0
+ if_icmpeq Label<label1>
+ ldc "T"
+ getstatic java/lang/System.out Ljava/io/PrintStream;
+ swap
+ invokevirtual java/io/PrintStream.println(Ljava/lang/String;)V
+ goto Label<label2>
+ Label<label1>:
+ ldc "NIL"
+ getstatic java/lang/System.out Ljava/io/PrintStream;
+ swap
+ invokevirtual java/io/PrintStream.println(Ljava/lang/String;)V
+ Label<label2>:
+>>
+
+value(x)::=<<
+ ldc <x>
+>>
+
+var(x,id,type)::=<<
+ <type>load <x;separator="\n"> ; <id>
+>>
+
+set(varNum,v,id,type)::=<<
+ <v>
+ <type>store <varNum> ; <id>
+>>
+
+logics(value)::=<<
+ iconst_<value>
+>>
+
+progn(instructions)::=<<
+ <instructions;separator="\n">
+>>
+
+breakloop(label1)::=<<
+goto Label<label1>
+>>
+
+loopexp(expresion,label1,label2)::=<<
+Label<label1>:
+<expresion;separator="\n">
+goto Label<label1>
+<label2>
+>>
+
+expt(value1,value2,type1,type2,typeReturn)::=<<
+ <value1>
+ <type1>2d
+ <value2>
+ <type2>2d           
+ invokestatic java/lang/Math.pow(DD)D
+ d2<typeReturn> 
+>> 
+
+maxi(first,values,end)::=<<
+<first>
+<values;separator="\ninvokestatic java/lang/Math.max(II)I \n">
+<end>
+>> 
+
+maxf(first,values,end)::=<<
+<first>
+<values;separator="\ninvokestatic java/lang/Math.max(FF)F \n">
+<end>
+>> 
+
+read(temp1,temp2,label1,label2)::=<<
+    ldc 0 
+    istore <temp1>  ; this will hold our final integer
+Label<label1>: 
+    getstatic java/lang/System/in Ljava/io/InputStream; 
+    invokevirtual java/io/InputStream/read()I 
+    istore <temp2> 
+    iload <temp2> 
+    ldc 10   ; the newline delimiter LF
+    isub 
+    ifeq Label<label2> 
+    iload <temp2> 
+    ldc 32   ; the space delimiter 
+    isub 
+    ifeq Label<label2> 
+    iload <temp2> 
+    ldc 13   ; the Carriage return CR
+    isub 
+    ifeq Label<label2> 
+    iload <temp2> 
+    ldc 48   ; we have our digit in ASCII, have to subtract it from 48 
+    isub 
+    ldc 10 
+    iload <temp1>
+    imul
+    iadd 
+    istore <temp1> 
+    goto Label<label1> 
+Label<label2>: 
+    iload <temp1>
+>>
