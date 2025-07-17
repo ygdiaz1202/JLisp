@@ -1,0 +1,5 @@
+-Designed and implemented a compiler for a subset of the Lisp programming language
+-Included lexical analysis, parsing, syntax tree construction, and code generation
+-Developed using object-oriented design principles and compiler theory techniques
+-Supported arithmetic operations, conditionals, and function definitions
+-Tools Used: Java, ANTLR, JFlex, CUP
